@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weather App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #fff;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 30px 25px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      margin-bottom: 15px;
+      outline: none;
+      transition: 0.2s;
+    }
+    input:focus {
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    button {
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      background-color: #4fc3f7;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: #0288d1;
+    }
+    .weather-card {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      animation: fadeIn 0.5s ease;
+    }
+    .weather-card img {
+      width: 80px;
+    }
+    .weather-card h2 {
+      margin: 10px 0 5px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .weather-card p {
+      margin: 6px 0;
+      font-size: 16px;
+    }
+    .loader {
+      margin-top: 20px;
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #4fc3f7;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌤️ Weather App</h1>
+    <form id="weather-form">
+      <input type="text" id="city-input" placeholder="Enter city (e.g., Chennai)" required />
+      <button type="submit">Check Weather</button>
+    </form>
+    <div id="weather-result"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cityInput = document.getElementById('city-input');
+      const weatherResult = document.getElementById('weather-result');
+      const weatherForm = document.getElementById('weather-form');
+
+      // Hidden API key stored internally
+      const apiKey = 'e534eeae9c6019eae70f1d37da84f1f7';
+
+      weatherForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const city = cityInput.value.trim();
+
+        if (!city) {
+          weatherResult.innerHTML = `<p>Please enter a city name.</p>`;
+          return;
+        }
+
+        getWeather(city);
+      });
+
+      function showLoader() {
+        weatherResult.innerHTML = `<div class="loader"></div>`;
+      }
+
+      function getWeather(city) {
+        showLoader();
+
+        fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('City not found');
+            }
+            return response.json();
+          })
+          .then(data => {
+            displayWeather(data);
+          })
+          .catch(error => {
+            weatherResult.innerHTML = `<p>${error.message}</p>`;
+          });
+      }
+
+      function displayWeather(data) {
+        const { name, main, weather } = data;
+        const icon = weather[0].icon;
+        const description = weather[0].description;
+
+        weatherResult.innerHTML = `
+          <div class="weather-card">
+            <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}" />
+            <h2>${name}</h2>
+            <p><strong>${description.toUpperCase()}</strong></p>
+            <p>🌡️ Temp: ${main.temp} °C</p>
+            <p>💧 Humidity: ${main.humidity}%</p>
+            <p>🔽 Pressure: ${main.pressure} hPa</p>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
